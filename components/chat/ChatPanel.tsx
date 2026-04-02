@@ -157,7 +157,7 @@ export function ChatPanel() {
             <div className="text-center max-w-md">
               {hasSources ? (
                 <>
-                  <img src="/logo-mark.png" alt="Memorwise" className="w-10 h-10 mx-auto mb-3 logo-adaptive opacity-60" />
+                  <img src="/logo-mark.png" alt="Memorwise" className="h-10 mx-auto mb-3 logo-adaptive opacity-60" style={{ width: 'auto' }} />
                   <p className="text-sm text-foreground-secondary mb-4">
                     Ask a question about your documents
                   </p>
