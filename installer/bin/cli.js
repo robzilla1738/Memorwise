@@ -255,6 +255,7 @@ function startServer(dir, port, noOpen) {
   log(`  ${c.green}${c.bold}  Ready!${c.reset}  ${c.cyan}http://local.memorwise.com:${port}${c.reset}`);
   log();
   log(`  ${c.dim}  Open Settings to configure your LLM provider${c.reset}`);
+  log(`  ${c.dim}  Add to Dock: ./scripts/create-desktop-app.sh${c.reset}`);
   log(`  ${c.dim}  Press Ctrl+C to stop${c.reset}`);
   log();
   log(`  ${c.dim}${'─'.repeat(49)}${c.reset}`);

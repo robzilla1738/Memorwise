@@ -138,6 +138,21 @@ Then in Memorwise: Settings → **Audio** → **Kokoro (Local)** → pick a voic
 
 ---
 
+## Desktop App (Optional)
+
+Add Memorwise to your Dock/app menu so you can launch it with a click:
+
+```bash
+./scripts/create-desktop-app.sh
+```
+
+**macOS:** Creates `Memorwise.app` in `/Applications` — drag it to your Dock.
+**Linux:** Creates a `.desktop` launcher in your app menu.
+
+The app automatically starts the server if it's not already running, waits for it to be ready, then opens your browser.
+
+---
+
 ## MCP Server (Claude Code / Cursor)
 
 Memorwise ships with an MCP server so AI coding assistants can read, search, and interact with your notebooks directly.
