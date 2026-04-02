@@ -157,10 +157,7 @@ export function ChatPanel() {
             <div className="text-center max-w-md">
               {hasSources ? (
                 <>
-                  <MessageSquare
-                    size={32}
-                    className="mx-auto mb-3 text-foreground-muted"
-                  />
+                  <img src="/logo-mark.png" alt="Memorwise" className="w-10 h-10 mx-auto mb-3 logo-adaptive opacity-60" />
                   <p className="text-sm text-foreground-secondary mb-4">
                     Ask a question about your documents
                   </p>
@@ -174,7 +171,7 @@ export function ChatPanel() {
                   {suggestions.length > 0 && (
                     <div className="mt-6 w-full max-w-sm mx-auto">
                       <p className="text-[11px] text-foreground-muted uppercase tracking-widest flex items-center justify-center gap-2 mb-3">
-                        <img src="/logo-mark.png" alt="" className="w-3 h-3 logo-adaptive opacity-50" /> Suggested questions
+                        Suggested questions
                       </p>
                       <div className="flex flex-col gap-2">
                         {suggestions.map((q, i) => (
