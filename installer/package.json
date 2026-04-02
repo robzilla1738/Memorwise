@@ -1,6 +1,6 @@
 {
   "name": "memorwise",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Your local, open-source notebook for chatting with documents using any LLM",
   "bin": {
     "memorwise": "bin/cli.js"
