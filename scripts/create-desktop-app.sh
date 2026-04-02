@@ -11,7 +11,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 PORT=4747
-URL="http://local.memorwise.com:$PORT"
+URL="http://localhost:$PORT"
 
 # Colors
 c_reset='\033[0m'
