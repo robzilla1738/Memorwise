@@ -394,7 +394,7 @@ export function SettingsModal() {
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.15 }}
             className="fixed inset-0 flex items-center justify-center z-50 p-4">
-            <div className="w-[700px] h-[540px] bg-card border border-border rounded-xl overflow-hidden flex flex-col">
+            <div className="w-[700px] h-[680px] bg-card border border-border rounded-xl overflow-hidden flex flex-col">
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-3 border-b border-border shrink-0">
                 <h2 className="text-sm font-medium text-foreground">Settings</h2>
