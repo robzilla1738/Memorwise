@@ -43,15 +43,18 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   loadSessions: async (notebookId: string) => {
     const res = await fetch(`/api/chat/sessions?notebookId=${notebookId}`);
+    if (!res.ok) return;
     const sessions = await res.json();
     set({ sessions, error: null });
     if (sessions.length === 0) {
       const r = await fetch('/api/chat/sessions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ notebookId }) });
+      if (!r.ok) return;
       const session = await r.json();
       set({ sessions: [session], activeSessionId: session.id, messages: [] });
     } else {
       set({ activeSessionId: sessions[0].id });
       const r = await fetch(`/api/chat/sessions/${sessions[0].id}`);
+      if (!r.ok) return;
       set({ messages: await r.json() });
     }
   },

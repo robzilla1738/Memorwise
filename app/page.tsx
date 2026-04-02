@@ -148,6 +148,25 @@ export default function Home() {
     setActiveView('chat');
   }, [selectedNotebookId]);
 
+  // Handle search result navigation
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const result = (e as CustomEvent).detail;
+      if (!result) return;
+      if (result.type === 'note') {
+        window.dispatchEvent(new CustomEvent('memorwise:select-note', { detail: { noteId: result.id } }));
+      } else if (result.type === 'source') {
+        const src = useNotebookStore.getState().sources.find((s: any) => s.id === result.id);
+        if (src) useNotebookStore.getState().setViewingSource(src);
+      } else if (result.type === 'message' && result.sessionId) {
+        useChatStore.getState().selectSession(result.sessionId);
+        setActiveView('chat');
+      }
+    };
+    window.addEventListener('memorwise:search-navigate', handler);
+    return () => window.removeEventListener('memorwise:search-navigate', handler);
+  }, []);
+
   const handleStudioViewChange = (view: string) => {
     if (
       view === 'flashcards' ||

@@ -66,11 +66,13 @@ export const useSettingsStore = create<SettingsState>((set) => ({
 
   loadProviders: async () => {
     const res = await fetch('/api/providers');
+    if (!res.ok) return;
     set({ providers: await res.json() });
   },
 
   loadModels: async (providerId: string) => {
     const res = await fetch('/api/providers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ providerId, action: 'models' }) });
+    if (!res.ok) return;
     set({ availableModels: await res.json() });
   },
 
