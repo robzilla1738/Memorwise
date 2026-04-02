@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-const VERSION = '1.0.3';
+const VERSION = '1.0.4';
 const REPO = 'https://github.com/robzilla1738/Memorwise.git';
 const APP_NAME = 'memorwise';
 const PORT = 3000;
@@ -80,12 +80,14 @@ function showHelp() {
   log(`    ${c.green}-v, --version${c.reset}      Show version number`);
   log(`    ${c.green}-p, --port${c.reset} ${c.dim}<port>${c.reset}  Set dev server port ${c.dim}(default: 3000)${c.reset}`);
   log(`    ${c.green}--no-open${c.reset}          Don't open browser automatically`);
+  log(`    ${c.green}--no-update${c.reset}        Skip checking for updates`);
   log();
   log(`  ${c.bold}What it does:${c.reset}`);
   log(`    ${c.dim}1.${c.reset} Clones the Memorwise repo (or detects existing install)`);
-  log(`    ${c.dim}2.${c.reset} Installs dependencies`);
-  log(`    ${c.dim}3.${c.reset} Starts the dev server`);
-  log(`    ${c.dim}4.${c.reset} Opens your browser to http://localhost:${PORT}`);
+  log(`    ${c.dim}2.${c.reset} Checks for updates and pulls latest changes`);
+  log(`    ${c.dim}3.${c.reset} Installs dependencies`);
+  log(`    ${c.dim}4.${c.reset} Starts the dev server`);
+  log(`    ${c.dim}5.${c.reset} Opens your browser to http://localhost:${PORT}`);
   log();
   log(`  ${c.bold}After install:${c.reset}`);
   log(`    ${c.dim}Run again with${c.reset} memorwise ${c.dim}or${c.reset} npx memorwise`);
@@ -161,11 +163,45 @@ async function main() {
   success(`git ${c.dim}available${c.reset}`);
 
   // Check if already installed
+  let skipUpdate = args.includes('--no-update');
   if (fs.existsSync(fullPath)) {
     const hasPackageJson = fs.existsSync(path.join(fullPath, 'package.json'));
     if (hasPackageJson) {
       log();
       step(`Existing install found at ${c.bold}${targetDir}${c.reset}`);
+
+      // Check for updates
+      if (!skipUpdate && fs.existsSync(path.join(fullPath, '.git'))) {
+        const updateSpinner = createSpinner('Checking for updates...');
+        try {
+          runQuiet('git fetch origin', fullPath);
+          const local = runQuiet('git rev-parse HEAD', fullPath).trim();
+          const remote = runQuiet('git rev-parse origin/main', fullPath).trim();
+          if (local !== remote) {
+            updateSpinner.stop('Update available — pulling latest...');
+            const pullSpinner = createSpinner('Updating Memorwise...');
+            try {
+              runQuiet('git pull origin main', fullPath);
+              pullSpinner.stop('Updated to latest version');
+              // Re-install deps if package.json changed
+              const depsSpinner = createSpinner('Checking dependencies...');
+              try {
+                runQuiet('npm install', fullPath);
+                depsSpinner.stop('Dependencies up to date');
+              } catch {
+                depsSpinner.fail('npm install failed — try running it manually');
+              }
+            } catch {
+              pullSpinner.fail('Update failed — starting with current version');
+            }
+          } else {
+            updateSpinner.stop('Already up to date');
+          }
+        } catch {
+          updateSpinner.stop('Skipped update check');
+        }
+      }
+
       log();
       startServer(fullPath, port, noOpen);
       return;
