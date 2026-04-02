@@ -103,6 +103,8 @@ export function SettingsModal() {
   const [saved, setSaved] = useState(false);
   const [fetchedModels, setFetchedModels] = useState<{ id: string; name: string }[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [fetchedEmbedModels, setFetchedEmbedModels] = useState<{ id: string; name: string }[]>([]);
+  const [loadingEmbedModels, setLoadingEmbedModels] = useState(false);
   const [pullModelName, setPullModelName] = useState('');
   const [pulling, setPulling] = useState(false);
   const [pullProgress, setPullProgress] = useState('');
@@ -273,6 +275,34 @@ export function SettingsModal() {
       fetchModels(activeProvider);
     }
   }, [isOpen, activeTab, activeProvider]);
+
+  // Fetch embedding models for local providers
+  const fetchEmbedModels = async (providerId: string) => {
+    if (!canListModels.includes(providerId)) { setFetchedEmbedModels([]); return; }
+    setLoadingEmbedModels(true);
+    try {
+      const res = await fetch('/api/providers', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ providerId, action: 'models' }),
+      });
+      if (res.ok) {
+        const models = await res.json();
+        setFetchedEmbedModels(Array.isArray(models) ? models : []);
+      } else {
+        setFetchedEmbedModels([]);
+      }
+    } catch { setFetchedEmbedModels([]); }
+    setLoadingEmbedModels(false);
+  };
+
+  // Auto-fetch embedding models when switching to Embeddings tab or changing provider
+  useEffect(() => {
+    if (isOpen && activeTab === 'embeddings' && canListModels.includes(embeddingProvider)) {
+      fetchEmbedModels(embeddingProvider);
+    } else if (!canListModels.includes(embeddingProvider)) {
+      setFetchedEmbedModels([]);
+    }
+  }, [isOpen, activeTab, embeddingProvider]);
 
   // Escape to close
   useEffect(() => {
@@ -617,14 +647,53 @@ export function SettingsModal() {
                           </p>
                         </div>
                         <div>
-                          <label className="text-[12px] text-foreground-muted block mb-1">Model</label>
-                          <input type="text" value={embedModelInput}
-                            onChange={e => setEmbedModelInput(e.target.value)}
-                            onBlur={saveEmbedModel}
-                            onKeyDown={e => { if (e.key === 'Enter') { saveEmbedModel(); (e.target as HTMLInputElement).blur(); } }}
-                            placeholder={embedPlaceholders[embeddingProvider] || 'embedding-model-name'}
-                            className="w-full px-3 py-2.5 bg-input border border-border rounded-lg text-[13px] text-foreground placeholder:text-foreground-muted font-mono focus:ring-1 focus:ring-ring" />
-                          <p className="text-[11px] text-foreground-muted mt-1">Type exact embedding model name.</p>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-[12px] text-foreground-muted">Model</label>
+                            {canListModels.includes(embeddingProvider) && (
+                              <button onClick={() => fetchEmbedModels(embeddingProvider)} disabled={loadingEmbedModels}
+                                className="flex items-center gap-1 text-[11px] text-foreground-muted hover:text-foreground-secondary transition-colors disabled:opacity-50">
+                                <RefreshCw size={10} className={loadingEmbedModels ? 'animate-spin' : ''} />
+                                {loadingEmbedModels ? 'Loading...' : 'Refresh'}
+                              </button>
+                            )}
+                          </div>
+                          {canListModels.includes(embeddingProvider) ? (
+                            fetchedEmbedModels.length > 0 ? (
+                              <>
+                                <select value={embedModelInput}
+                                  onChange={e => { setEmbedModelInput(e.target.value); setEmbeddingModel(e.target.value); }}
+                                  className="w-full px-3 py-2.5 bg-input border border-border rounded-lg text-[13px] text-foreground font-mono focus:ring-1 focus:ring-ring appearance-none cursor-pointer">
+                                  {!fetchedEmbedModels.some(m => m.id === embedModelInput) && embedModelInput && (
+                                    <option value={embedModelInput}>{embedModelInput} (current)</option>
+                                  )}
+                                  {fetchedEmbedModels.map(m => (
+                                    <option key={m.id} value={m.id}>{m.name || m.id}</option>
+                                  ))}
+                                </select>
+                                <p className="text-[11px] text-foreground-muted mt-1">
+                                  {fetchedEmbedModels.length} model{fetchedEmbedModels.length !== 1 ? 's' : ''} available on {EMBEDDING_PROVIDERS.find(p => p.id === embeddingProvider)?.name}.
+                                </p>
+                              </>
+                            ) : loadingEmbedModels ? (
+                              <div className="px-3 py-3 bg-elevated rounded-lg text-center">
+                                <p className="text-[12px] text-foreground-muted flex items-center justify-center gap-2"><Loader2 size={12} className="animate-spin" /> Fetching models...</p>
+                              </div>
+                            ) : (
+                              <div className="px-3 py-3 bg-elevated rounded-lg text-center">
+                                <p className="text-[12px] text-foreground-muted">No models found. Make sure {EMBEDDING_PROVIDERS.find(p => p.id === embeddingProvider)?.name} is running.</p>
+                              </div>
+                            )
+                          ) : (
+                            <>
+                              <input type="text" value={embedModelInput}
+                                onChange={e => setEmbedModelInput(e.target.value)}
+                                onBlur={saveEmbedModel}
+                                onKeyDown={e => { if (e.key === 'Enter') { saveEmbedModel(); (e.target as HTMLInputElement).blur(); } }}
+                                placeholder={embedPlaceholders[embeddingProvider] || 'embedding-model-name'}
+                                className="w-full px-3 py-2.5 bg-input border border-border rounded-lg text-[13px] text-foreground placeholder:text-foreground-muted font-mono focus:ring-1 focus:ring-ring" />
+                              <p className="text-[11px] text-foreground-muted mt-1">Type exact embedding model name.</p>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
