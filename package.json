@@ -7,9 +7,9 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 4747",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --port 4747",
     "lint": "next lint",
     "setup": "bash scripts/setup.sh"
   },

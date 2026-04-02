@@ -20,7 +20,7 @@ npm install
 npm run dev
 ```
 
-Then open **http://localhost:3000**.
+Then open **http://localhost:4747**.
 
 ## Connecting an LLM Provider
 
@@ -190,7 +190,7 @@ No extra setup — it uses `node` directly with the project's TypeScript compile
 ```bash
 npm run build
 npm start
-# → http://localhost:3000
+# → http://localhost:4747
 ```
 
 ## Tech Stack

@@ -8,7 +8,7 @@ const os = require('os');
 const VERSION = '1.0.7';
 const REPO = 'https://github.com/robzilla1738/Memorwise.git';
 const APP_NAME = 'memorwise';
-const PORT = 3000;
+const PORT = 4747;
 
 // ─── Colors ──────────────────────────────────
 const c = {
@@ -80,7 +80,7 @@ function showHelp() {
   log(`  ${c.bold}Options:${c.reset}`);
   log(`    ${c.green}-h, --help${c.reset}         Show this help message`);
   log(`    ${c.green}-v, --version${c.reset}      Show version number`);
-  log(`    ${c.green}-p, --port${c.reset} ${c.dim}<port>${c.reset}  Set dev server port ${c.dim}(default: 3000)${c.reset}`);
+  log(`    ${c.green}-p, --port${c.reset} ${c.dim}<port>${c.reset}  Set dev server port ${c.dim}(default: 4747)${c.reset}`);
   log(`    ${c.green}--no-open${c.reset}          Don't open browser automatically`);
   log(`    ${c.green}--no-update${c.reset}        Skip checking for updates`);
   log();
