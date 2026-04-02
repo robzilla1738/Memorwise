@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-const VERSION = '1.0.11';
+const VERSION = '1.0.12';
 const REPO = 'https://github.com/robzilla1738/Memorwise.git';
 const APP_NAME = 'memorwise';
 const PORT = 4747;
@@ -89,7 +89,7 @@ function showHelp() {
   log(`    ${c.dim}2.${c.reset} Checks for updates and pulls latest changes`);
   log(`    ${c.dim}3.${c.reset} Installs dependencies`);
   log(`    ${c.dim}4.${c.reset} Starts the dev server`);
-  log(`    ${c.dim}5.${c.reset} Opens your browser to http://localhost:${PORT}`);
+  log(`    ${c.dim}5.${c.reset} Opens your browser to http://local.memorwise.com`);
   log();
   log(`  ${c.bold}After install:${c.reset}`);
   log(`    ${c.dim}Run again with${c.reset} memorwise ${c.dim}or${c.reset} npx memorwise`);
@@ -252,7 +252,7 @@ function startServer(dir, port, noOpen) {
 
   log(`  ${c.dim}${'─'.repeat(49)}${c.reset}`);
   log();
-  log(`  ${c.green}${c.bold}  Ready!${c.reset}  ${c.cyan}http://localhost:${port}${c.reset}`);
+  log(`  ${c.green}${c.bold}  Ready!${c.reset}  ${c.cyan}http://local.memorwise.com${c.reset}`);
   log();
   log(`  ${c.dim}  Open Settings to configure your LLM provider${c.reset}`);
   log(`  ${c.dim}  Add to Dock: ./scripts/create-desktop-app.sh${c.reset}`);
@@ -262,7 +262,7 @@ function startServer(dir, port, noOpen) {
   log();
 
   if (!noOpen) {
-    const openUrl = `http://localhost:${port}`;
+    const openUrl = port !== PORT ? `http://localhost:${port}` : 'http://local.memorwise.com';
     setTimeout(() => openBrowser(openUrl), 2500);
   }
 
