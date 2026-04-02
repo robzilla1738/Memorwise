@@ -8,7 +8,7 @@ An open-source, local-first alternative to NotebookLM. Drop in your PDFs, images
 npx memorwise
 ```
 
-That's it. This clones the repo, installs dependencies, starts the server, and opens your browser. Head to **Settings** (gear icon), connect at least one LLM provider, create a notebook, add some sources, and start chatting.
+That's it. This clones the repo, installs dependencies, starts the server, and opens your browser to **[local.memorwise.com:4747](http://local.memorwise.com:4747)**. Head to **Settings** (gear icon), connect at least one LLM provider, create a notebook, add some sources, and start chatting.
 
 **Requirements:** Node.js 18+ and git
 
@@ -20,7 +20,7 @@ npm install
 npm run dev
 ```
 
-Then open **http://localhost:4747**.
+Then open **http://local.memorwise.com:4747**.
 
 ## Connecting an LLM Provider
 
@@ -190,7 +190,7 @@ No extra setup — it uses `node` directly with the project's TypeScript compile
 ```bash
 npm run build
 npm start
-# → http://localhost:4747
+# → http://local.memorwise.com:4747
 ```
 
 ## Tech Stack
