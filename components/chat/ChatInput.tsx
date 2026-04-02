@@ -21,6 +21,19 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
 
   useEffect(() => { resize(); }, [value, resize]);
 
+  // Listen for prefill events from graph explore
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.text) {
+        setValue(detail.text);
+        setTimeout(() => textareaRef.current?.focus(), 100);
+      }
+    };
+    window.addEventListener('memorwise:prefill-chat', handler);
+    return () => window.removeEventListener('memorwise:prefill-chat', handler);
+  }, []);
+
   const handleSend = () => {
     const trimmed = value.trim();
     if (!trimmed || disabled) return;

@@ -12,7 +12,9 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/base.css';
 import GraphNodeComponent from '@/components/graph/GraphNode';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, Copy, FileText, MessageSquare, Check } from 'lucide-react';
+import { MarkdownRenderer } from '@/components/chat/MarkdownRenderer';
+import { useNotebookStore } from '@/stores/notebook-store';
 
 interface RawNode {
   id: string;
@@ -227,95 +229,195 @@ export function GraphView({ notebookId }: { notebookId: string }) {
           </div>
         </div>
 
-        {/* Detail panel */}
+        {/* Detail panel — resizable */}
         {selectedNode && (
-          <div className="w-[260px] min-w-[260px] border-l border-border bg-card overflow-y-auto p-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className={`px-2 py-0.5 text-[10px] rounded-full font-medium ${
-                selectedNode.type === 'concept' ? 'bg-purple-500/10 text-purple-400' :
-                selectedNode.type === 'source' ? 'bg-red-500/10 text-red-400' :
-                'bg-blue-500/10 text-blue-400'
-              }`}>
-                {selectedNode.type}
-              </span>
-              <button onClick={() => setSelectedNode(null)} className="p-1 rounded hover:bg-elevated text-foreground-muted">
-                <X size={14} />
-              </button>
-            </div>
-            <h3 className="text-sm font-medium text-foreground mb-2">{selectedNode.label}</h3>
-            {selectedNode.summary && (
-              <p className="text-[12px] text-foreground-secondary mb-3 leading-relaxed">{selectedNode.summary}</p>
-            )}
-            {connectedItems.length > 0 && (
-              <div>
-                <p className="text-[11px] text-foreground-muted uppercase tracking-wider mb-2">
-                  Connected ({connectedItems.length})
-                </p>
-                <div className="space-y-1">
-                  {connectedItems.map(item => (
-                    <div key={item.id} className="flex items-center gap-2 px-2 py-1.5 bg-elevated rounded-lg text-[12px]">
-                      <span className={`w-2 h-2 rounded-full shrink-0 ${
-                        item.type === 'concept' ? 'bg-purple-400' :
-                        item.type === 'source' ? 'bg-red-400' : 'bg-blue-400'
-                      }`} />
-                      <span className="text-foreground-secondary truncate">{item.label}</span>
-                    </div>
-                  ))}
+          <DetailPanel
+            selectedNode={selectedNode}
+            connectedItems={connectedItems}
+            conceptInsight={conceptInsight}
+            setConceptInsight={setConceptInsight}
+            loadingInsight={loadingInsight}
+            setLoadingInsight={setLoadingInsight}
+            notebookId={notebookId}
+            onClose={() => setSelectedNode(null)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Detail Panel (resizable) ────────────────────
+
+function DetailPanel({ selectedNode, connectedItems, conceptInsight, setConceptInsight, loadingInsight, setLoadingInsight, notebookId, onClose }: {
+  selectedNode: RawNode;
+  connectedItems: RawNode[];
+  conceptInsight: string;
+  setConceptInsight: (s: string) => void;
+  loadingInsight: boolean;
+  setLoadingInsight: (b: boolean) => void;
+  notebookId: string;
+  onClose: () => void;
+}) {
+  const [panelWidth, setPanelWidth] = useState(340);
+  const [copied, setCopied] = useState(false);
+  const { createNote } = useNotebookStore();
+
+  const handleResize = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = panelWidth;
+    const onMouseMove = (ev: MouseEvent) => {
+      const delta = startX - ev.clientX;
+      setPanelWidth(Math.max(280, Math.min(600, startWidth + delta)));
+    };
+    const onMouseUp = () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }, [panelWidth]);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(conceptInsight);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSaveToNote = async () => {
+    try {
+      const note = await createNote(`Graph: ${selectedNode.label}`);
+      await fetch(`/api/notes/${note.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: `# ${selectedNode.label}\n\n${conceptInsight}` }),
+      });
+      window.dispatchEvent(new CustomEvent('memorwise:select-note', { detail: { noteId: note.id } }));
+    } catch {}
+  };
+
+  const handleSendToChat = () => {
+    // Dispatch a custom event that ChatPanel can listen for to pre-fill input
+    window.dispatchEvent(new CustomEvent('memorwise:prefill-chat', {
+      detail: { text: `Tell me more about "${selectedNode.label}" based on my documents.` }
+    }));
+  };
+
+  const exploreConceptFn = async () => {
+    setLoadingInsight(true);
+    try {
+      const res = await fetch('/api/graph/explore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notebookId, concept: selectedNode.label }),
+      });
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '', fullText = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const event = JSON.parse(line);
+            if (event.type === 'token') { fullText += event.content; setConceptInsight(fullText); }
+            else if (event.type === 'done') { setConceptInsight(event.fullText); }
+          } catch {}
+        }
+      }
+    } catch { setConceptInsight('Failed to load insight.'); }
+    setLoadingInsight(false);
+  };
+
+  return (
+    <div className="relative flex" style={{ width: panelWidth, minWidth: panelWidth }}>
+      {/* Resize handle */}
+      <div
+        onMouseDown={handleResize}
+        className="w-1 cursor-col-resize hover:bg-purple-500/30 active:bg-purple-500/50 transition-colors shrink-0"
+      />
+      <div className="flex-1 border-l border-border bg-card overflow-y-auto p-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          <span className={`px-2 py-0.5 text-[10px] rounded-full font-medium ${
+            selectedNode.type === 'concept' ? 'bg-purple-500/10 text-purple-400' :
+            selectedNode.type === 'source' ? 'bg-red-500/10 text-red-400' :
+            'bg-blue-500/10 text-blue-400'
+          }`}>
+            {selectedNode.type}
+          </span>
+          <button onClick={onClose} className="p-1 rounded hover:bg-elevated text-foreground-muted">
+            <X size={14} />
+          </button>
+        </div>
+
+        <h3 className="text-sm font-semibold text-foreground mb-2">{selectedNode.label}</h3>
+
+        {selectedNode.summary && (
+          <p className="text-[12px] text-foreground-secondary mb-3 leading-relaxed">{selectedNode.summary}</p>
+        )}
+
+        {/* Connected items */}
+        {connectedItems.length > 0 && (
+          <div className="mb-3">
+            <p className="text-[11px] text-foreground-muted uppercase tracking-wider mb-2">
+              Connected ({connectedItems.length})
+            </p>
+            <div className="space-y-1">
+              {connectedItems.map(item => (
+                <div key={item.id} className="flex items-center gap-2 px-2 py-1.5 bg-elevated rounded-lg text-[12px]">
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${
+                    item.type === 'concept' ? 'bg-purple-400' :
+                    item.type === 'source' ? 'bg-red-400' : 'bg-blue-400'
+                  }`} />
+                  <span className="text-foreground-secondary truncate">{item.label}</span>
                 </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Explore concept */}
+        {selectedNode.type === 'concept' && (
+          <div className="mt-1">
+            {!conceptInsight && !loadingInsight && (
+              <button onClick={exploreConceptFn}
+                className="w-full px-3 py-2 text-[12px] font-medium bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 rounded-lg transition-colors">
+                What do sources say about this?
+              </button>
+            )}
+            {loadingInsight && (
+              <div className="flex items-center gap-2 text-[11px] text-foreground-muted py-2">
+                <Loader2 size={12} className="animate-spin" /> Analyzing sources...
               </div>
             )}
-
-            {/* Explore concept — ask LLM what sources say */}
-            {selectedNode.type === 'concept' && (
-              <div className="mt-3">
-                {!conceptInsight && !loadingInsight && (
-                  <button
-                    onClick={async () => {
-                      setLoadingInsight(true);
-                      try {
-                        const res = await fetch('/api/graph/explore', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ notebookId, concept: selectedNode.label }),
-                        });
-                        const reader = res.body!.getReader();
-                        const decoder = new TextDecoder();
-                        let buffer = '', fullText = '';
-                        while (true) {
-                          const { done, value } = await reader.read();
-                          if (done) break;
-                          buffer += decoder.decode(value, { stream: true });
-                          const lines = buffer.split('\n');
-                          buffer = lines.pop() || '';
-                          for (const line of lines) {
-                            if (!line.trim()) continue;
-                            try {
-                              const event = JSON.parse(line);
-                              if (event.type === 'token') { fullText += event.content; setConceptInsight(fullText); }
-                              else if (event.type === 'done') { setConceptInsight(event.fullText); }
-                            } catch {}
-                          }
-                        }
-                      } catch { setConceptInsight('Failed to load insight.'); }
-                      setLoadingInsight(false);
-                    }}
-                    className="w-full px-3 py-2 text-[12px] font-medium bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 rounded-lg transition-colors">
-                    What do sources say about this?
-                  </button>
-                )}
-                {loadingInsight && (
-                  <div className="flex items-center gap-2 text-[11px] text-foreground-muted py-2">
-                    <Loader2 size={12} className="animate-spin" /> Analyzing sources...
+            {conceptInsight && (
+              <div className="mt-2">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] text-foreground-muted uppercase tracking-wider">From your documents</p>
+                  <div className="flex items-center gap-1">
+                    <button onClick={handleCopy} title="Copy"
+                      className="p-1.5 rounded-md hover:bg-elevated text-foreground-muted hover:text-foreground-secondary transition-colors">
+                      {copied ? <Check size={12} className="text-success" /> : <Copy size={12} />}
+                    </button>
+                    <button onClick={handleSaveToNote} title="Save to note"
+                      className="p-1.5 rounded-md hover:bg-elevated text-foreground-muted hover:text-foreground-secondary transition-colors">
+                      <FileText size={12} />
+                    </button>
+                    <button onClick={handleSendToChat} title="Ask in chat"
+                      className="p-1.5 rounded-md hover:bg-elevated text-foreground-muted hover:text-foreground-secondary transition-colors">
+                      <MessageSquare size={12} />
+                    </button>
                   </div>
-                )}
-                {conceptInsight && (
-                  <div className="mt-2 p-3 bg-elevated rounded-lg">
-                    <p className="text-[10px] text-foreground-muted uppercase tracking-wider mb-1.5">From your documents</p>
-                    <div className="text-[12px] text-foreground-secondary leading-relaxed whitespace-pre-wrap">
-                      {conceptInsight}
-                    </div>
-                  </div>
-                )}
+                </div>
+                <div className="p-3 bg-elevated rounded-lg text-[12.5px] text-foreground-secondary leading-relaxed">
+                  <MarkdownRenderer content={conceptInsight} />
+                </div>
               </div>
             )}
           </div>
