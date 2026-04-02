@@ -186,9 +186,12 @@ function WelcomeScreen() {
 
 export default function Home() {
   const loadNotebooks = useNotebookStore((s) => s.loadNotebooks);
+  const notebooks = useNotebookStore((s) => s.notebooks);
+  const selectNotebook = useNotebookStore((s) => s.selectNotebook);
   const loadSettings = useSettingsStore((s) => s.loadSettings);
   const loadProviders = useSettingsStore((s) => s.loadProviders);
   const selectedNotebookId = useNotebookStore((s) => s.selectedNotebookId);
+  const { loadSessions } = useChatStore();
 
   const [activeView, setActiveView] = useState<CenterView>('chat');
 
@@ -197,6 +200,15 @@ export default function Home() {
     loadSettings();
     loadProviders();
   }, [loadNotebooks, loadSettings]);
+
+  // Auto-select last notebook if none selected and notebooks exist
+  useEffect(() => {
+    if (!selectedNotebookId && notebooks.length > 0) {
+      const last = notebooks[0];
+      selectNotebook(last.id);
+      loadSessions(last.id);
+    }
+  }, [notebooks, selectedNotebookId, selectNotebook, loadSessions]);
 
   // Reset view when notebook changes
   useEffect(() => {
