@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-const VERSION = '1.0.2';
+const VERSION = '1.0.3';
 const REPO = 'https://github.com/robzilla1738/Memorwise.git';
 const APP_NAME = 'memorwise';
 const PORT = 3000;
@@ -54,11 +54,10 @@ function openBrowser(url) {
 // ─── Banner ──────────────────────────────────
 function banner() {
   log();
-  log(`  ${c.cyan}${c.bold}  __  __                           _          ${c.reset}`);
-  log(`  ${c.cyan}${c.bold} |  \\/  | ___ _ __ ___   ___  _ __(_)___  ___ ${c.reset}`);
-  log(`  ${c.cyan}${c.bold} | |\\/| |/ _ \\ '_ \` _ \\ / _ \\| '__| / __|/ _ \\${c.reset}`);
-  log(`  ${c.cyan}${c.bold} | |  | |  __/ | | | | | (_) | |  | \\__ \\  __/${c.reset}`);
-  log(`  ${c.cyan}${c.bold} |_|  |_|\\___|_| |_| |_|\\___/|_|  |_|___/\\___|${c.reset}`);
+  log(`  ${c.cyan}${c.bold}  __  __                          _            ${c.reset}`);
+  log(`  ${c.cyan}${c.bold} |  \\/  |___ _ __  ___ _ ___ __ _(_)___ ___   ${c.reset}`);
+  log(`  ${c.cyan}${c.bold} | |\\/| / -_) '  \\/ _ \\ '_\\ V  V / (_-</ -_)  ${c.reset}`);
+  log(`  ${c.cyan}${c.bold} |_|  |_\\___|_|_|_\\___/_|  \\_/\\_/|_/__/\\___|  ${c.reset}`);
   log();
   log(`  ${c.dim}Chat with your documents locally${c.reset}            ${c.dim}v${VERSION}${c.reset}`);
   log(`  ${c.dim}${'─'.repeat(49)}${c.reset}`);
