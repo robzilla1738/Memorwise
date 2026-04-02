@@ -79,11 +79,11 @@ Everything below is optional — only install what you need:
 
 ## Data Storage
 
-All your data stays local in `.openlm/` at the project root:
+All your data stays local in `.memorwise/` at the project root:
 
 ```
-.openlm/
-├── openlm.db        — SQLite database
+.memorwise/
+├── memorwise.db     — SQLite database
 ├── lancedb/         — Vector embeddings
 ├── sources/         — Uploaded files
 └── whisper-models/  — Local Whisper models (if used)

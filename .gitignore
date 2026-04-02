@@ -2,7 +2,7 @@ node_modules/
 .next/
 out/
 dist/
-.openlm/
+.memorwise/
 *.env
 .env*
 .DS_Store

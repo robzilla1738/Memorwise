@@ -8,14 +8,14 @@ function ensureDir(dir: string) {
   return dir;
 }
 
-const DATA_DIR = process.env.MEMORWISE_DATA_DIR || path.join(process.cwd(), '.openlm');
+const DATA_DIR = process.env.MEMORWISE_DATA_DIR || path.join(process.cwd(), '.memorwise');
 
 export function getDataDir() {
   return ensureDir(DATA_DIR);
 }
 
 export function getDbPath() {
-  return path.join(getDataDir(), 'openlm.db');
+  return path.join(getDataDir(), 'memorwise.db');
 }
 
 export function getLanceDbPath() {
