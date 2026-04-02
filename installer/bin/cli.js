@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-const VERSION = '1.0.6';
+const VERSION = '1.0.7';
 const REPO = 'https://github.com/robzilla1738/Memorwise.git';
 const APP_NAME = 'memorwise';
 const PORT = 3000;
@@ -34,8 +34,10 @@ function warn(msg) { log(`  ${c.yellow}${c.bold}!${c.reset} ${c.dim}${msg}${c.re
 function fail(msg) { log(`  ${c.red}${c.bold}✗${c.reset} ${msg}`); }
 function info(msg) { log(`    ${c.dim}${msg}${c.reset}`); }
 
+const isWin = os.platform() === 'win32';
+
 function checkCommand(cmd) {
-  try { execSync(`which ${cmd}`, { stdio: 'ignore' }); return true; } catch { return false; }
+  try { execSync(isWin ? `where ${cmd}` : `which ${cmd}`, { stdio: 'ignore' }); return true; } catch { return false; }
 }
 
 function runQuiet(cmd, cwd) {
@@ -46,7 +48,7 @@ function openBrowser(url) {
   const p = os.platform();
   try {
     if (p === 'darwin') execSync(`open ${url}`, { stdio: 'ignore' });
-    else if (p === 'win32') execSync(`start ${url}`, { stdio: 'ignore' });
+    else if (p === 'win32') execSync(`start "" "${url}"`, { stdio: 'ignore' });
     else if (p === 'linux') execSync(`xdg-open ${url}`, { stdio: 'ignore' });
   } catch {}
 }
@@ -268,6 +270,7 @@ function startServer(dir, port, noOpen) {
 
   const child = spawn('npm', ['run', 'dev'], {
     stdio: 'inherit',
+    shell: isWin,
     env,
   });
   child.on('exit', (code) => process.exit(code || 0));
