@@ -245,7 +245,7 @@ function send(msg) {
 
 function handleRequest(req) {
   if (req.method === 'initialize') {
-    send({ jsonrpc: '2.0', id: req.id, result: { protocolVersion: '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'memorwise', version: '1.0.0' } } });
+    send({ jsonrpc: '2.0', id: req.id, result: { protocolVersion: '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'memorwise', version: '1.0.8' } } });
   } else if (req.method === 'notifications/initialized') {
     // no response
   } else if (req.method === 'tools/list') {

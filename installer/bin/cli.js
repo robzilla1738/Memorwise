@@ -267,9 +267,12 @@ function startServer(dir, port, noOpen) {
 
   process.chdir(dir);
   const env = { ...process.env };
-  if (port !== PORT) env.PORT = String(port);
 
-  const child = spawn('npm', ['run', 'dev'], {
+  // Use npx next dev directly with custom port (npm run dev hardcodes --port 4747)
+  const cmd = port !== PORT ? 'npx' : 'npm';
+  const args = port !== PORT ? ['next', 'dev', '--port', String(port)] : ['run', 'dev'];
+
+  const child = spawn(cmd, args, {
     stdio: 'inherit',
     shell: isWin,
     env,

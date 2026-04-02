@@ -312,6 +312,7 @@ function DetailPanel({ selectedNode, connectedItems, conceptInsight, setConceptI
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notebookId, concept: selectedNode.label }),
       });
+      if (!res.ok) throw new Error('Failed to explore concept');
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let buffer = '', fullText = '';

@@ -3,6 +3,7 @@ node_modules/
 out/
 dist/
 .memorwise/
+.openlm/
 *.env
 .env*
 .DS_Store

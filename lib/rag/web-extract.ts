@@ -88,7 +88,15 @@ async function extractGitHub(owner: string, repo: string): Promise<ExtractedCont
   return { title, text: readme, sourceType: 'url' };
 }
 
+function isPrivateUrl(url: string): boolean {
+  try {
+    const { hostname } = new URL(url);
+    return /^(localhost|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|0\.|::1|\[::1\])/.test(hostname);
+  } catch { return true; }
+}
+
 async function extractWebPage(url: string): Promise<ExtractedContent> {
+  if (isPrivateUrl(url)) throw new Error('Cannot fetch internal/private URLs');
   const response = await fetch(url, {
     headers: {
       'User-Agent': 'Mozilla/5.0 (compatible; Memorwise/1.0)',

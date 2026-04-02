@@ -47,7 +47,12 @@ function renderMarkdown(raw: string): string {
     s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
     s = s.replace(/~~(.+?)~~/g, '<del>$1</del>');
-    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, href) => {
+      if (/^(https?:|mailto:|#|\/)/i.test(href)) {
+        return `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
+      }
+      return text;
+    });
     return s;
   }
 

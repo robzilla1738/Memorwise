@@ -337,8 +337,9 @@ export function SettingsModal() {
     const config: { apiKey?: string; baseUrl?: string } = {};
     if (meta?.needsKey && apiKeyInput) config.apiKey = apiKeyInput;
     if (meta?.needsUrl && urlInput) config.baseUrl = urlInput;
-    if (meta?.gatewayUrl) config.baseUrl = gatewayUrlInput || '';
-    if (Object.keys(config).length === 0 && !meta?.gatewayUrl) return;
+    if (meta?.gatewayUrl && gatewayUrlInput.trim()) config.baseUrl = gatewayUrlInput.trim();
+    else if (meta?.gatewayUrl && !gatewayUrlInput.trim()) config.baseUrl = '';
+    if (Object.keys(config).length === 0) return;
     await configureProvider(selectedId, config);
     await loadProviders();
     setApiKeyInput('');

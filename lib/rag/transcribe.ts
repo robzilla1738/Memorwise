@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { execSync, execFileSync } from 'child_process';
 import { getDataDir } from '../paths';
 import { getSetting } from '../db/queries';
 
@@ -102,7 +102,7 @@ export async function transcribeVideo(videoPath: string): Promise<string> {
 
   try {
     console.log(`[transcribe] Extracting audio from ${path.basename(videoPath)}...`);
-    execSync(`ffmpeg -i "${videoPath}" -vn -acodec pcm_s16le -ar 16000 -ac 1 "${tempAudio}" -y`, {
+    execFileSync('ffmpeg', ['-i', videoPath, '-vn', '-acodec', 'pcm_s16le', '-ar', '16000', '-ac', '1', tempAudio, '-y'], {
       stdio: 'ignore',
       timeout: 300000,
     });

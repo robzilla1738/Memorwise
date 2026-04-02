@@ -112,6 +112,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
         body: JSON.stringify({ sessionId: activeSessionId, notebookId, message, sourceId: focusedSourceId }),
       });
 
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Chat request failed' }));
+        throw new Error(err.error || `Chat failed: ${res.status}`);
+      }
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let buffer = '';

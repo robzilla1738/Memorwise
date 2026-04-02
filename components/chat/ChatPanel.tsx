@@ -179,7 +179,7 @@ export function ChatPanel() {
                       <div className="flex flex-col gap-2">
                         {suggestions.map((q, i) => (
                           <motion.button
-                            key={i}
+                            key={q}
                             initial={{ opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.08 }}

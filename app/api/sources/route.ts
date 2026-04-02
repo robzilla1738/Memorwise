@@ -32,14 +32,19 @@ export async function POST(req: Request) {
   const files = formData.getAll('files') as File[];
   if (files.length === 0) return NextResponse.json({ error: 'No files' }, { status: 400 });
 
+  const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
   const sources = [];
   for (const file of files) {
     try {
+      if (file.size > MAX_FILE_SIZE) {
+        return NextResponse.json({ error: `File "${file.name}" exceeds 500MB limit` }, { status: 413 });
+      }
       const ext = path.extname(file.name).slice(1).toLowerCase();
       const sourceType = detectSourceType(ext);
       const buffer = Buffer.from(await file.arrayBuffer());
       const destDir = getNotebookSourcesPath(notebookId);
-      const destPath = path.join(destDir, `${Date.now()}_${file.name}`);
+      const safeName = path.basename(file.name).replace(/[^a-zA-Z0-9._-]/g, '_');
+      const destPath = path.join(destDir, `${Date.now()}_${safeName}`);
       fs.writeFileSync(destPath, buffer);
 
       const source = queries.createSource(notebookId, file.name, destPath, ext, file.size, sourceType, folderId ?? undefined);
