@@ -268,7 +268,6 @@ function startServer(dir, port, noOpen) {
 
   const child = spawn('npm', ['run', 'dev'], {
     stdio: 'inherit',
-    shell: true,
     env,
   });
   child.on('exit', (code) => process.exit(code || 0));
