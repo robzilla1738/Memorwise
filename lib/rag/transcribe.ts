@@ -86,12 +86,13 @@ async function transcribeWithApi(audioPath: string, config: TranscriptionConfig)
 export async function transcribeVideo(videoPath: string): Promise<string> {
   // Check ffmpeg
   try {
-    execSync('which ffmpeg', { stdio: 'ignore' });
+    execSync(process.platform === 'win32' ? 'where ffmpeg' : 'which ffmpeg', { stdio: 'ignore' });
   } catch {
     throw new Error(
       'Video transcription requires ffmpeg. Install it:\n' +
-      '  macOS: brew install ffmpeg\n' +
-      '  Linux: sudo apt install ffmpeg'
+      '  macOS:   brew install ffmpeg\n' +
+      '  Linux:   sudo apt install ffmpeg\n' +
+      '  Windows: choco install ffmpeg  (or download from ffmpeg.org)'
     );
   }
 

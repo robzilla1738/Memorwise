@@ -74,8 +74,8 @@ Everything below is optional — only install what you need:
 |------|----------------|---------|
 | **Ollama** | Run LLMs locally | [ollama.com](https://ollama.com) |
 | **LM Studio** | Run LLMs locally (GUI) | [lmstudio.ai](https://lmstudio.ai) |
-| **ffmpeg** | Video file transcription | `brew install ffmpeg` (macOS) / `apt install ffmpeg` (Linux) |
-| **espeak-ng** | Kokoro local TTS | `brew install espeak-ng` (macOS) / `apt install espeak-ng` (Linux) |
+| **ffmpeg** | Video file transcription | `brew install ffmpeg` (macOS) / `apt install ffmpeg` (Linux) / `choco install ffmpeg` (Windows) |
+| **espeak-ng** | Kokoro local TTS | `brew install espeak-ng` (macOS) / `apt install espeak-ng` (Linux) / [espeak-ng releases](https://github.com/espeak-ng/espeak-ng/releases) (Windows) |
 
 ## Data Storage
 
