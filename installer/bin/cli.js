@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-const VERSION = '1.0.5';
+const VERSION = '1.0.6';
 const REPO = 'https://github.com/robzilla1738/Memorwise.git';
 const APP_NAME = 'memorwise';
 const PORT = 3000;
