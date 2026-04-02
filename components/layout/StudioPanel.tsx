@@ -273,13 +273,17 @@ export function StudioPanel({ notebookId, onViewChange }: StudioPanelProps) {
                   <p className="text-[10px] text-foreground-muted uppercase tracking-wider px-1 mb-1">Saved ({generations.length})</p>
                   {generations.map(gen => {
                     const isInteractive = gen.type === 'quiz' || gen.type === 'flashcards';
-                    const typeIcon = gen.type === 'quiz' ? BookOpen : gen.type === 'flashcards' ? Layers : gen.type === 'study-guide' ? BookOpen : RefreshCw;
+                    const isAudio = gen.type === 'audio';
+                    const typeIcon = gen.type === 'quiz' ? BookOpen : gen.type === 'flashcards' ? Layers : gen.type === 'audio' ? Headphones : gen.type === 'study-guide' ? BookOpen : RefreshCw;
                     const TypeIcon = typeIcon;
                     return (
                     <div key={gen.id} className="group flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-elevated transition-colors cursor-pointer"
                       onClick={() => {
-                        if (isInteractive) {
-                          // Load saved data into center panel
+                        if (isAudio) {
+                          // Open AudioOverview which will load saved data
+                          setShowAudioOverview(true);
+                          setViewingGen(null);
+                        } else if (isInteractive) {
                           try {
                             const data = JSON.parse(gen.content);
                             window.dispatchEvent(new CustomEvent('memorwise:load-generation', { detail: { type: gen.type, data } }));
@@ -321,7 +325,16 @@ export function StudioPanel({ notebookId, onViewChange }: StudioPanelProps) {
                   </div>
                   <h3 className="text-[13px] font-medium text-foreground">{viewingGen.title}</h3>
                   <div className="markdown-body text-[12px]">
-                    <MarkdownRenderer content={viewingGen.content} />
+                    {viewingGen.type === 'audio' ? (
+                      (() => {
+                        try {
+                          const data = JSON.parse(viewingGen.content);
+                          return <MarkdownRenderer content={data.script || viewingGen.content} />;
+                        } catch { return <MarkdownRenderer content={viewingGen.content} />; }
+                      })()
+                    ) : (
+                      <MarkdownRenderer content={viewingGen.content} />
+                    )}
                   </div>
                 </div>
               )}
