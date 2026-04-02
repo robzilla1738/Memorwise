@@ -7,9 +7,18 @@ export class OpenAIProvider implements LLMProvider {
   readonly supportsEmbeddings = true;
   private client: OpenAI | null = null;
   private apiKey = '';
+  private baseUrl = '';
 
-  setApiKey(key: string) { this.apiKey = key; this.client = key ? new OpenAI({ apiKey: key }) : null; }
+  setApiKey(key: string) { this.apiKey = key; this.rebuildClient(); }
   getApiKey() { return this.apiKey; }
+  setBaseUrl(url: string) { this.baseUrl = url; this.rebuildClient(); }
+  getBaseUrl() { return this.baseUrl; }
+  private rebuildClient() {
+    if (!this.apiKey) { this.client = null; return; }
+    const opts: { apiKey: string; baseURL?: string } = { apiKey: this.apiKey };
+    if (this.baseUrl) opts.baseURL = this.baseUrl;
+    this.client = new OpenAI(opts);
+  }
   private getClient(): OpenAI { if (!this.client) throw new Error('OpenAI API key not configured'); return this.client; }
 
   async isAvailable(): Promise<boolean> {

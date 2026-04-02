@@ -44,6 +44,8 @@ class ProviderRegistry {
     try {
       const openaiKey = getSetting('openai_api_key');
       if (openaiKey) this.openai.setApiKey(openaiKey);
+      const openaiUrl = getSetting('openai_base_url');
+      if (openaiUrl) this.openai.setBaseUrl(openaiUrl);
       const geminiKey = getSetting('gemini_api_key');
       if (geminiKey) this.gemini.setApiKey(geminiKey);
       const anthropicKey = getSetting('anthropic_api_key');
@@ -113,7 +115,10 @@ class ProviderRegistry {
 
   setProviderConfig(providerId: string, config: { apiKey?: string; baseUrl?: string }) {
     switch (providerId) {
-      case 'openai': if (config.apiKey !== undefined) { this.openai.setApiKey(config.apiKey); setSetting('openai_api_key', config.apiKey); } break;
+      case 'openai':
+        if (config.apiKey !== undefined) { this.openai.setApiKey(config.apiKey); setSetting('openai_api_key', config.apiKey); }
+        if (config.baseUrl !== undefined) { this.openai.setBaseUrl(config.baseUrl); setSetting('openai_base_url', config.baseUrl); }
+        break;
       case 'gemini': if (config.apiKey !== undefined) { this.gemini.setApiKey(config.apiKey); setSetting('gemini_api_key', config.apiKey); } break;
       case 'anthropic': if (config.apiKey !== undefined) { this.anthropic.setApiKey(config.apiKey); setSetting('anthropic_api_key', config.apiKey); } break;
       case 'openrouter': if (config.apiKey !== undefined) { this.openrouter.setApiKey(config.apiKey); setSetting('openrouter_api_key', config.apiKey); } break;
@@ -127,7 +132,7 @@ class ProviderRegistry {
   getProviderConfig(providerId: string): { apiKey?: string; baseUrl?: string; hasApiKey?: boolean } {
     this.ensureLoaded();
     switch (providerId) {
-      case 'openai': return { apiKey: maskKey(this.openai.getApiKey()), hasApiKey: !!this.openai.getApiKey() };
+      case 'openai': return { apiKey: maskKey(this.openai.getApiKey()), hasApiKey: !!this.openai.getApiKey(), baseUrl: this.openai.getBaseUrl() };
       case 'gemini': return { apiKey: maskKey(this.gemini.getApiKey()), hasApiKey: !!this.gemini.getApiKey() };
       case 'anthropic': return { apiKey: maskKey(this.anthropic.getApiKey()), hasApiKey: !!this.anthropic.getApiKey() };
       case 'openrouter': return { apiKey: maskKey(this.openrouter.getApiKey()), hasApiKey: !!this.openrouter.getApiKey() };

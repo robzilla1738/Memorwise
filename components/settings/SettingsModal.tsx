@@ -9,6 +9,7 @@ const PROVIDER_META: Record<string, {
   name: string; description: string; needsKey: boolean; needsUrl: boolean;
   defaultUrl?: string; tips: string; placeholder?: string;
   supportsEmbeddings: boolean; supportsTTS: boolean; supportsTranscription: boolean;
+  gatewayUrl?: boolean;
 }> = {
   ollama: {
     name: 'Ollama', description: 'Run models locally', needsKey: false, needsUrl: true,
@@ -21,6 +22,7 @@ const PROVIDER_META: Record<string, {
     placeholder: 'sk-...',
     tips: 'Get your key from platform.openai.com/api-keys. Type the exact model name below.',
     supportsEmbeddings: true, supportsTTS: true, supportsTranscription: true,
+    gatewayUrl: true,
   },
   anthropic: {
     name: 'Anthropic', description: 'API access', needsKey: true, needsUrl: false,
@@ -96,6 +98,7 @@ export function SettingsModal() {
   const [apiKeyInput, setApiKeyInput] = useState('');
   const [showKey, setShowKey] = useState(false);
   const [urlInput, setUrlInput] = useState('');
+  const [gatewayUrlInput, setGatewayUrlInput] = useState('');
   const [chatModelInput, setChatModelInput] = useState('');
   const [embedModelInput, setEmbedModelInput] = useState('');
   const [testing, setTesting] = useState(false);
@@ -316,6 +319,7 @@ export function SettingsModal() {
     if (isOpen && selectedId) {
       const prov = providers.find(p => p.id === selectedId);
       setUrlInput(prov?.baseUrl || PROVIDER_META[selectedId]?.defaultUrl || '');
+      setGatewayUrlInput(prov?.baseUrl || '');
       setApiKeyInput('');
       setShowKey(false);
       setTestResult(null);
@@ -333,7 +337,8 @@ export function SettingsModal() {
     const config: { apiKey?: string; baseUrl?: string } = {};
     if (meta?.needsKey && apiKeyInput) config.apiKey = apiKeyInput;
     if (meta?.needsUrl && urlInput) config.baseUrl = urlInput;
-    if (Object.keys(config).length === 0) return;
+    if (meta?.gatewayUrl) config.baseUrl = gatewayUrlInput || '';
+    if (Object.keys(config).length === 0 && !meta?.gatewayUrl) return;
     await configureProvider(selectedId, config);
     await loadProviders();
     setApiKeyInput('');
@@ -468,6 +473,21 @@ export function SettingsModal() {
                                 {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
                               </button>
                             </div>
+                          </div>
+                        )}
+
+                        {meta.gatewayUrl && (
+                          <div>
+                            <label className="text-[12px] text-foreground-muted block mb-1">AI Gateway URL <span className="text-foreground-muted/60">(optional)</span></label>
+                            <input type="text" value={gatewayUrlInput} onChange={e => setGatewayUrlInput(e.target.value)}
+                              onKeyDown={e => { if (e.key === 'Enter') handleSave(); }}
+                              placeholder="https://ai-gateway.vercel.sh/v1"
+                              className="w-full px-3 py-2.5 bg-input border border-border rounded-lg text-[13px] text-foreground placeholder:text-foreground-muted font-mono focus:ring-1 focus:ring-ring" />
+                            <p className="text-[11px] text-foreground-muted mt-1">
+                              {gatewayUrlInput
+                                ? 'Requests will route through this gateway. Use provider/model format (e.g., openai/gpt-5.4).'
+                                : 'Route through Vercel AI Gateway, Portkey, LiteLLM, or any OpenAI-compatible proxy.'}
+                            </p>
                           </div>
                         )}
 
