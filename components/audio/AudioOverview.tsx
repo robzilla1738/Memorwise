@@ -2,10 +2,20 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Headphones, Loader2, AlertCircle, X } from 'lucide-react';
+import { Headphones, Loader2, AlertCircle } from 'lucide-react';
+
+interface Generation {
+  id: string;
+  type: string;
+  title: string;
+  content: string;
+  created_at: string;
+}
 
 interface AudioOverviewProps {
   notebookId: string;
+  savedGenerations?: Generation[];
+  onSave?: (type: string, title: string, content: string) => Promise<any>;
 }
 
 interface ScriptLine {
@@ -32,7 +42,7 @@ function createAudioUrl(base64: string): string {
   return URL.createObjectURL(blob);
 }
 
-export function AudioOverview({ notebookId }: AudioOverviewProps) {
+export function AudioOverview({ notebookId, savedGenerations, onSave }: AudioOverviewProps) {
   const [status, setStatus] = useState<Status>('idle');
   const [podcastLength, setPodcastLength] = useState<PodcastLength>('medium');
   const [script, setScript] = useState<string>('');
@@ -40,6 +50,7 @@ export function AudioOverview({ notebookId }: AudioOverviewProps) {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>('');
   const audioUrlRef = useRef<string | null>(null);
+  const loadedRef = useRef(false);
 
   // Cleanup blob URL on unmount
   useEffect(() => {
@@ -49,6 +60,30 @@ export function AudioOverview({ notebookId }: AudioOverviewProps) {
       }
     };
   }, []);
+
+  // Load saved audio generation on mount
+  useEffect(() => {
+    if (loadedRef.current || !savedGenerations) return;
+    loadedRef.current = true;
+    const saved = savedGenerations.find(g => g.type === 'audio');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved.content);
+        if (data.script) {
+          setScript(data.script);
+          setParsedLines(parseScript(data.script));
+          if (data.audioBase64) {
+            const url = createAudioUrl(data.audioBase64);
+            audioUrlRef.current = url;
+            setAudioUrl(url);
+            setStatus('audio-ready');
+          } else {
+            setStatus('script-ready');
+          }
+        }
+      } catch { /* ignore parse errors, show idle */ }
+    }
+  }, [savedGenerations]);
 
   const generate = useCallback(async () => {
     setStatus('generating-script');
@@ -89,11 +124,17 @@ export function AudioOverview({ notebookId }: AudioOverviewProps) {
       } else {
         setStatus('script-ready');
       }
+
+      // Save to generations (persists across sessions)
+      if (onSave) {
+        const content = JSON.stringify({ script: rawScript, audioBase64: data.audioBase64 || null });
+        onSave('audio', `Audio Overview (${podcastLength})`, content);
+      }
     } catch (err: any) {
       setErrorMsg(err.message || 'Generation failed');
       setStatus('error');
     }
-  }, [notebookId]);
+  }, [notebookId, podcastLength, onSave]);
 
   return (
     <div className="flex flex-col gap-3 w-full">
@@ -198,7 +239,7 @@ export function AudioOverview({ notebookId }: AudioOverviewProps) {
             {/* Script-only note */}
             {status === 'script-ready' && (
               <div className="text-[11px] text-foreground-muted/70 bg-zinc-800/40 rounded-md px-2.5 py-2 text-center">
-                Script only -- add an OpenAI key in Settings for audio playback
+                Script only — configure a TTS provider in Settings → Audio for audio playback
               </div>
             )}
 

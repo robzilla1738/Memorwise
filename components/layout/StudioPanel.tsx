@@ -260,7 +260,7 @@ export function StudioPanel({ notebookId, onViewChange }: StudioPanelProps) {
           {showAudioOverview && (
             <>
               <div className="border-t border-border" />
-              <AudioOverview notebookId={notebookId} />
+              <AudioOverview notebookId={notebookId} savedGenerations={generations} onSave={saveGeneration} />
             </>
           )}
 
